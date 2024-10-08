@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page - FlexiCode</title>
+    <link rel="icon" href="images/flexiicon.jpg" type="image/x-icon" />
+
+    <style>
+        /* Reset default margins and paddings */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Ensure the body takes the full height and sets relative positioning */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Video container positioned fixed to stay in the background */
+        .fullscreen-video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1; /* Ensures the video stays behind other content */
+        }
+
+        .fullscreen-video-container video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover; /* Ensures the video covers the container */
+        }
+
+        /* Content container positioned above the video */
+        .fullscreen-video-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            width: 100vw;  /* Full viewport width */
+            padding: 30px;
+            position: relative;
+            z-index: 1; /* Ensures the content stays above the video */
+        }
+
+        /* Signup form styling */
+        .signup-container {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            text-align: center; /* Center-aligns the content */
+        }
+
+        /* Logo styling */
+        .signup-logo {
+            width: 100px; /* Adjust the size as needed */
+            margin: 0 auto 20px auto; /* Centers the logo and adds bottom margin */
+            display: block;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            margin-bottom: 15px;
+            text-align: left; /* Aligns labels and inputs to the left */
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .signup-btn {
+            width: 100%;
+            background-color: #de3820;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .signup-btn:hover {
+            background-color: #678cc6;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .login-link a {
+            text-decoration: none;
+            color: #678cc6;
+            transition: color 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #678cc6;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <div class="fullscreen-video-container">
+        <video autoplay loop muted>
+            <source src="videos/backgroundloop.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <!-- Signup Form Content -->
+    <div class="fullscreen-video-content">
+        <div class="signup-container">
+            <!-- Logo Insertion -->
+            <img src="images/flexiicontrans.png" alt="FlexiCode Logo" class="signup-logo">
+            
+            <h2>Register</h2>
+            <form action="login.html" method="post">
+
+                <div class="input-field">
+                    <label for="new-username">Username</label>
+                    <input type="text" id="new-username" name="new-username" required>
+                </div>
+                <div class="input-field">
+                    <label for="new-password">Password</label>
+                    <input type="password" id="new-password" name="new-password" required>
+                </div>
+                <button type="submit" class="signup-btn">Sign Up</button>
+            </form>
+            <div class="login-link">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder for signup functionality
+        document.getElementById('signup-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            alert('Signup functionality is not implemented.');
+            // Here you can implement AJAX to submit the form data or redirect to the signup_action.php
+        });
+    </script>
+</body>
+</html>

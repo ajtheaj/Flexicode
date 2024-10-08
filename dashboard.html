@@ -1,0 +1,655 @@
+<?php
+// dashboard.php
+
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['username'])) {
+    header('Location: login.html'); // Redirect to login page if not logged in
+    exit();
+}
+
+$username = htmlspecialchars($_SESSION['username']);
+
+// Retrieve the user's learning style from the session
+$learningStyle = isset($_SESSION['learning_style']) ? htmlspecialchars($_SESSION['learning_style']) : 'Audio';
+
+// Function to get the appropriate greeting based on the current time
+function getGreeting() {
+    $hour = date('H'); // Get the current hour in 24-hour format
+    if ($hour < 12) {
+        return "Good morning";
+    } elseif ($hour < 18) {
+        return "Good afternoon";
+    } else {
+        return "Good evening";
+    }
+}
+
+$username = htmlspecialchars($_SESSION['username']);
+
+// Retrieve the user's learning style from the session
+// Ensure that 'learning_style' is set during the login or user setup process
+$learningStyle = isset($_SESSION['learning_style']) ? htmlspecialchars($_SESSION['learning_style']) : 'Audio';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FlexiCode</title>
+    <link rel="icon" href="images/flexiicon.jpg" type="image/x-icon" />
+   
+    <!-- Google Fonts for better typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
+    <style>
+        /* Reset default margins and paddings */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header with picture */
+        .header {
+            width: 100%;
+            height: 250px;
+            background-image: url('images/banner.png'); /* Updated to use banner.png */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 123, 255, 0.6); /* Semi-transparent overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .header-overlay h1 {
+            color: #ffffff;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header-overlay p {
+            color: #ffffff;
+            font-size: 18px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Navigation bar */
+        .navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        .navbar li {
+            position: relative;
+        }
+
+        .navbar a {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            color: #333333;
+            font-size: 16px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .navbar a:hover {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+
+        .navbar a.active {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+
+        .navbar a img {
+            margin-right: 8px;
+            width: 20px; /* Adjust size as needed */
+            height: 20px;
+        }
+
+        /* User Info Section */
+        .user-info {
+            background-color: #ffffff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .user-info .username {
+            font-size: 18px;
+            color: #333333;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-info .learning-style {
+            font-size: 16px;
+            color: #555555;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-info .learning-style img {
+            margin-right: 8px;
+            width: 16px; /* Reduced size for better proportion */
+            height: 16px;
+            object-fit: contain; /* Ensures the image scales correctly */
+        }
+
+
+        /* Navigation User Icon */
+        .user-info .username img {
+            margin-right: 8px;
+            width: 16px; /* Reduced size for better proportion */
+            height: 16px;
+            object-fit: contain; /* Ensures the image scales correctly */
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            padding: 30px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            background-color: #f0f4f8;
+        }
+
+        /* Learning Progress Section */
+        .progress-section, .syllabus-section {
+            background-color: #ffffff;
+            padding: 25px 30px;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            flex: 1 1 450px;
+            max-width: 600px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .progress-section:hover, .syllabus-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .progress-section h2, .syllabus-section h2 {
+            margin-bottom: 20px;
+            color: #007bff;
+            text-align: center;
+        }
+
+        .progress-bar {
+            background-color: #e9ecef;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 25px;
+            width: 100%;
+        }
+
+        .progress-bar-fill {
+            background-color: #28a745;
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.6s ease;
+            text-align: right;
+            padding-right: 10px;
+            color: #ffffff;
+            line-height: 25px;
+            font-weight: bold;
+        }
+
+        /* Lessons List */
+        .lessons-list {
+            list-style-type: none;
+            margin-top: 15px;
+        }
+
+        .lessons-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .lessons-list li::before {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-image: url('images/chevron-right.png'); /* Replace with your chevron-right image */
+            background-size: contain;
+            background-repeat: no-repeat;
+            margin-right: 8px;
+        }
+
+        .lessons-list li a {
+            text-decoration: none;
+            color: #555555;
+            transition: color 0.3s;
+            margin-right: 10px;
+            flex: 1; /* Ensure the link takes up available space */
+        }
+
+        .lessons-list li a:hover {
+            color: #007bff;
+        }
+
+        .lessons-list .audio-icon {
+            width: 18px; /* Slightly larger for better visibility */
+            height: 18px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .lessons-list .audio-icon:hover {
+            opacity: 0.7;
+        }
+
+        /* Syllabus Section */
+        .syllabus-item {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .syllabus-item img {
+            width: 24px; /* Adjust size as needed */
+            height: 24px;
+            margin-right: 15px;
+        }
+
+        .syllabus-item h3 {
+            margin-bottom: 10px;
+            color: #333333;
+        }
+
+        .syllabus-item p {
+            color: #555555;
+            line-height: 1.6;
+        }
+
+        /* Support Chat Button */
+        .support-chat {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #17a2b8;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            z-index: 1000;
+        }
+
+        .support-chat:hover {
+            background-color: #138496;
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #343a40;
+            color: #f8f9fa;
+            text-align: center;
+            padding: 15px 10px;
+            font-size: 14px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar ul {
+                flex-direction: column;
+            }
+
+            .navbar a {
+                text-align: center;
+                padding: 10px;
+                border-top: 1px solid #f1f1f1;
+            }
+
+            .navbar a:first-child {
+                border-top: none;
+            }
+
+            .main-content {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .progress-section, .syllabus-section {
+                max-width: 90%;
+            }
+
+            /* Adjust audio player for smaller screens */
+            #audio-player {
+                width: 90%;
+                right: 5%;
+            }
+
+            /* Adjust User Info Section */
+            .user-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .user-info .learning-style {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header with Picture -->
+    <div class="header">
+        <div class="header-overlay">
+            <h1>FlexiCode Learning Dashboard</h1>
+            <p>Empowering Your Learning Journey</p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <ul>
+            <li><a href="dashboard.php" class="active">
+                <img src="images/home.png" alt="Home Icon">
+                Home
+            </a></li>
+            <li><a href="scores.php">
+                <img src="images/scores.png" alt="Scores Icon">
+                Scores
+            </a></li>
+            <li><a href="syllabus.php">
+                <img src="images/syllabus.png" alt="Syllabus Icon">
+                Syllabus
+            </a></li>
+            <li><a href="support_chat.php">
+                <img src="images/chat.png" alt="Chat Support Icon">
+                Chat Support
+            </a></li>
+            <li><a href="index.html">
+                <img src="images/logout.png" alt="Logout Icon">
+                Logout
+            </a></li>
+        </ul>
+    </div>
+
+    <!-- User Info Section -->
+    <div class="user-info">
+        <div class="username">
+            <img src="images/user.png" alt="User Icon">
+            Good day! Welcome to the Dashboard!
+        </div>
+        <div class="learning-style">
+            <img src="images/headphones.png" alt="Learning Style Icon">
+            Preferred Learning Style: Audio
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Learning Progress Section -->
+        <div class="progress-section">
+            <h2>Your Learning Progress</h2>
+            <!-- Module 1 -->
+            <div>
+                <p>Module 1: Introduction to Programming</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" style="width: 80%;">80%</div>
+                </div>
+                <!-- Example Lessons for Module 1 -->
+                <ul class="lessons-list">
+                    <li>
+                        <a href="#">Lesson 1.1: Understanding Variables</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module1_l1.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID1" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">Lesson 1.2: Control Structures</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module1_lesson1_2.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID2" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">Lesson 1.3: Basic Algorithms</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module1_lesson1_3.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID3" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Module 2 -->
+            <div>
+                <p>Module 2: Advanced JavaScript</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" style="width: 60%;">60%</div>
+                </div>
+                <!-- Example Lessons for Module 2 -->
+                <ul class="lessons-list">
+                    <li>
+                        <a href="#">Lesson 2.1: Asynchronous Programming</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module2_lesson2_1.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID4" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">Lesson 2.2: Closures and Scope</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module2_lesson2_2.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID5" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">Lesson 2.3: Modern Frameworks (React)</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module2_lesson2_3.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID6" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Module 3 -->
+            <div>
+                <p>Module 3: Database Management</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" style="width: 40%;">40%</div>
+                </div>
+                <!-- Example Lessons for Module 3 -->
+                <ul class="lessons-list">
+                    <li>
+                        <a href="#">Lesson 3.1: SQL Basics</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module3_lesson3_1.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID7" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">Lesson 3.2: Database Design Principles</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module3_lesson3_2.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID8" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">Lesson 3.3: CRUD Operations</a>
+                        <img src="images/audio.png" alt="Play Audio" class="audio-icon" onclick="playAudio('audio/module3_lesson3_3.mp3')" title="Play Audio">
+                        <a href="https://www.youtube.com/watch?v=VIDEO_ID9" target="_blank" title="Watch Video">
+                            <img src="images/youtube.png" alt="YouTube Video" class="youtube-icon" style="width:20px; height:20px; margin-left:5px;">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+<div class="progress-section">
+  <h2>Score Reports</h2>
+  </div>
+
+<div class="score-report-section">
+  <h2>Test Progress Chart</h2>
+  <canvas id="scoreReportChart"></canvas>
+  </div>
+            <!-- Additional Modules (Optional) -->
+            <!-- You can add more modules following the same structure -->
+        </div>
+
+        <!-- Syllabus Section -->
+        <div class="syllabus-section">
+            <h2>Syllabus Overview</h2>
+
+            <!-- Visual Learning Style -->
+            <div class="syllabus-item">
+                <img src="images/tv.png" alt="Visual Learning Style Icon">
+                <div>
+                    <h3>Visual Learning Style</h3>
+                    <p>Utilize video tutorials, infographics, and visual diagrams to grasp complex topics. Watch live coding sessions and view graphical representations of data structures.</p>
+                </div>
+            </div>
+            <!-- Audio Learning Style -->
+            <div class="syllabus-item">
+                <img src="images/headphones.png" alt="Audio Learning Style Icon">
+                <div>
+                    <h3>Audio Learning Style</h3>
+                    <p>Engage with audio lectures and podcasts to understand programming concepts. Participate in discussion groups and verbal Q&A sessions to reinforce learning.</p>
+                </div>
+            </div>
+
+            <!-- Read/Write Learning Style -->
+            <div class="syllabus-item">
+                <img src="images/book.png" alt="Read/Write Learning Style Icon">
+                <div>
+                    <h3>Read/Write Learning Style</h3>
+                    <p>Enhance learning through comprehensive reading materials, documentation, and written assignments. Take detailed notes and engage in reflective writing exercises.</p>
+                </div>
+            </div>
+
+            <!-- Kinesthetic Learning Style -->
+            <div class="syllabus-item">
+                <img src="images/running.png" alt="Kinesthetic Learning Style Icon">
+                <div>
+                    <h3>Kinesthetic Learning Style</h3>
+                    <p>Participate in hands-on coding projects and interactive labs. Engage in real-world problem-solving activities and collaborative workshops to apply theoretical knowledge.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Chat Button -->
+    <button class="support-chat" onclick="openSupportChat()">
+        <img src="images/chat.png" alt="Chat Support Icon" style="width:20px; height:20px;">
+    </button>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; <?php echo date("Y"); ?> FlexiCode. All rights reserved.</p>
+    </div>
+
+    <!-- JavaScript for Support Chat and Audio Playback -->
+    <script>
+        function openSupportChat() {
+            // Placeholder function for support chat
+            // You can integrate a chat service like Intercom, Zendesk, or a custom chat solution here
+            alert('Support Chat is not implemented yet.');
+        }
+
+        // Highlight active navigation link
+        const currentPage = window.location.pathname.split("/").pop();
+        const navLinks = document.querySelectorAll('.navbar a');
+        navLinks.forEach(link => {
+            if(link.getAttribute('href') === currentPage) {
+                link.classList.add('active');
+            }
+        });
+
+        // Function to play audio lessons
+        function playAudio(audioSrc) {
+            // Create or get the audio player element
+            let audioPlayer = document.getElementById('audio-player');
+            if (!audioPlayer) {
+                audioPlayer = document.createElement('audio');
+                audioPlayer.id = 'audio-player';
+                audioPlayer.controls = true;
+                audioPlayer.style.position = 'fixed';
+                audioPlayer.style.bottom = '80px';
+                audioPlayer.style.right = '30px';
+                audioPlayer.style.width = '300px';
+                audioPlayer.style.zIndex = '1001';
+                document.body.appendChild(audioPlayer);
+            }
+
+            // Set the source and play
+            audioPlayer.src = audioSrc;
+            audioPlayer.play();
+        }
+
+  const scoreData = {
+    labels: ['Module 1', 'Module 2', 'Module 3'],
+    datasets: [{
+      data: [80, 60, 75], // Replace with actual scores
+      backgroundColor: ['#28a745', '#ffc107', '#dc3545'], // Colors for each slice
+    }]
+  };
+
+  const ctx = document.getElementById('scoreReportChart').getContext('2d');
+  const scoreReportChart = new Chart(ctx, {
+    type: 'pie',
+    data: scoreData,
+    options: {
+      responsive: true, // Adjust chart based on screen size
+    }
+  });
+
+    </script>
+
+</body>
+</html>
